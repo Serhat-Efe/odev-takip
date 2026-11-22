@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Ödev Takip</title>
+
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      padding: 40px 20px;
+      color: #172033;
+      background: #eef2ff;
+      font-family: Arial, sans-serif;
+    }
+
+    .container {
+      width: 100%;
+      max-width: 920px;
+      margin: auto;
+    }
+
+    header {
+      margin-bottom: 24px;
+    }
+
+    h1 {
+      margin: 0 0 8px;
+      color: #312e81;
+    }
+
+    header p {
+      margin: 0;
+      color: #64748b;
+    }
+
+    .panel {
+      padding: 24px;
+      margin-bottom: 24px;
+      border-radius: 16px;
+      background: white;
+      box-shadow: 0 10px 30px rgba(49, 46, 129, 0.08);
+    }
+
+    h2 {
+      margin-top: 0;
+      font-size: 20px;
+    }
+
+    .form-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+    }
+
+    .full-width {
+      grid-column: 1 / -1;
+    }
+
+    label {
+      display: block;
+      margin-bottom: 7px;
+      font-weight: bold;
+    }
+
+    input,
+    textarea {
+      width: 100%;
+      padding: 12px;
+      border: 1px solid #cbd5e1;
+      border-radius: 9px;
+      font: inherit;
+    }
+
+    input:focus,
+    textarea:focus {
+      outline: 2px solid #a5b4fc;
+      border-color: #6366f1;
+    }
+
+    textarea {
+      min-height: 90px;
+      resize: vertical;
+    }
+
+    .help {
+      margin: 6px 0 0;
+      color: #64748b;
+      font-size: 13px;
+    }
+
+    button {
+      padding: 12px 20px;
+      border: 0;
+      border-radius: 9px;
+      color: white;
+      background: #4f46e5;
+      font-weight: bold;
+      cursor: pointer;
+    }
+
+    button:hover {
+      background: #4338ca;
+    }
+
+    #emptyMessage {
+      margin: 0;
+      color: #64748b;
+      text-align: center;
+    }
+
+    .assignment {
+      padding: 20px;
+      margin-top: 16px;
+      border: 1px solid #e2e8f0;
+      border-left: 5px solid #6366f1;
+      border-radius: 12px;
+      background: #ffffff;
+    }
+
+    .assignment h3 {
+      margin: 0 0 6px;
+    }
+
+    .assignment-info {
+      margin: 0 0 16px;
+      color: #64748b;
+    }
+
+    .file-list {
+      padding-left: 22px;
+      margin-bottom: 0;
+    }
+
+    .file-list li {
+      padding: 5px 0;
+    }
+
+    @media (max-width: 650px) {
+      body {
+        padding: 20px 12px;
+      }
+
+      .form-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .full-width {
+        grid-column: auto;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <main class="container">
+    <header>
+      <h1>Ödev Takip</h1>
+      <p>Ödevlerini ve hazırlaman gereken dosyaları tek yerde planla.</p>
+    </header>
+
+    <section class="panel">
+      <h2>Yeni ödev oluştur</h2>
+
+      <form id="assignmentForm" class="form-grid">
+        <div>
+          <label for="courseName">Ders adı</label>
+          <input id="courseName" type="text" required>
+        </div>
+
+        <div>
+          <label for="dueDate">Son teslim tarihi</label>
+          <input id="dueDate" type="date" required>
+        </div>
+
+        <div class="full-width">
+          <label for="assignmentTitle">Ödev başlığı</label>
+          <input id="assignmentTitle" type="text" required>
+        </div>
+
+        <div class="full-width">
+          <label for="requiredFiles">Hazırlanacak dosyalar</label>
+          <textarea
+            id="requiredFiles"
+            placeholder="Kaynak kod, Çalışma süresi grafiği"
+            required
+          ></textarea>
+          <p class="help">Dosya adlarını virgülle ayırarak yaz.</p>
+        </div>
+
+        <div class="full-width">
+          <button type="submit">Ödevi kaydet</button>
+        </div>
+      </form>
+    </section>
+
+    <section class="panel">
+      <h2>Planlanan ödevler</h2>
+      <p id="emptyMessage">Henüz bir ödev eklenmedi.</p>
+      <div id="assignmentList"></div>
+    </section>
+  </main>
+
+  <script>
+    const form = document.getElementById("assignmentForm");
+    const assignmentList = document.getElementById("assignmentList");
+    const emptyMessage = document.getElementById("emptyMessage");
+
+    form.addEventListener("submit", function (event) {
+      event.preventDefault();
+
+      const courseName = document.getElementById("courseName").value.trim();
+      const assignmentTitle =
+        document.getElementById("assignmentTitle").value.trim();
+      const dueDate = document.getElementById("dueDate").value;
+      const requiredFiles = document
+        .getElementById("requiredFiles")
+        .value.split(",")
+        .map(function (fileName) {
+          return fileName.trim();
+        })
+        .filter(function (fileName) {
+          return fileName !== "";
+        });
+
+      if (requiredFiles.length === 0) {
+        alert("En az bir dosya adı girmelisin.");
+        return;
+      }
+
+      const assignmentCard = document.createElement("article");
+      assignmentCard.className = "assignment";
+
+      const title = document.createElement("h3");
+      title.textContent = assignmentTitle;
+
+      const information = document.createElement("p");
+      information.className = "assignment-info";
+      information.textContent =
+        courseName + " • Son teslim tarihi: " + formatDate(dueDate);
+
+      const fileList = document.createElement("ul");
+      fileList.className = "file-list";
+
+      requiredFiles.forEach(function (fileName) {
+        const fileItem = document.createElement("li");
+        fileItem.textContent = fileName;
+        fileList.appendChild(fileItem);
+      });
+
+      assignmentCard.appendChild(title);
+      assignmentCard.appendChild(information);
+      assignmentCard.appendChild(fileList);
+      assignmentList.appendChild(assignmentCard);
+
+      emptyMessage.hidden = true;
+      form.reset();
+    });
+
+    function formatDate(dateValue) {
+      return new Date(dateValue + "T00:00:00").toLocaleDateString("tr-TR");
+    }
+  </script>
+</body>
+</html>
