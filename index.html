@@ -128,17 +128,59 @@
     }
 
     .assignment-info {
-      margin: 0 0 16px;
+      margin: 0 0 14px;
       color: #64748b;
     }
 
-    .file-list {
-      padding-left: 22px;
-      margin-bottom: 0;
+    .progress-badge {
+      display: inline-block;
+      padding: 6px 11px;
+      margin: 0 0 12px;
+      border-radius: 999px;
+      color: #4338ca;
+      background: #e0e7ff;
+      font-size: 14px;
+      font-weight: bold;
     }
 
-    .file-list li {
-      padding: 5px 0;
+    .progress-badge.complete {
+      color: #166534;
+      background: #dcfce7;
+    }
+
+    .file-list {
+      display: grid;
+      gap: 9px;
+    }
+
+    .file-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 10px 12px;
+      border: 1px solid #e2e8f0;
+      border-radius: 9px;
+      background: #f8fafc;
+    }
+
+    .file-row input {
+      width: 18px;
+      height: 18px;
+      margin: 0;
+      padding: 0;
+      accent-color: #4f46e5;
+      cursor: pointer;
+    }
+
+    .file-row label {
+      margin: 0;
+      font-weight: normal;
+      cursor: pointer;
+    }
+
+    .file-row.completed label {
+      color: #64748b;
+      text-decoration: line-through;
     }
 
     @media (max-width: 650px) {
@@ -244,23 +286,53 @@
       information.textContent =
         courseName + " • Son teslim tarihi: " + formatDate(dueDate);
 
-      const fileList = document.createElement("ul");
+      const progress = document.createElement("p");
+      progress.className = "progress-badge";
+      progress.textContent = "0/" + requiredFiles.length + " hazır";
+
+      const fileList = document.createElement("div");
       fileList.className = "file-list";
 
-      requiredFiles.forEach(function (fileName) {
-        const fileItem = document.createElement("li");
-        fileItem.textContent = fileName;
-        fileList.appendChild(fileItem);
+      requiredFiles.forEach(function (fileName, index) {
+        const fileRow = document.createElement("div");
+        fileRow.className = "file-row";
+
+        const checkbox = document.createElement("input");
+        checkbox.type = "checkbox";
+        checkbox.id = "file-" + Date.now() + "-" + index;
+
+        const fileLabel = document.createElement("label");
+        fileLabel.htmlFor = checkbox.id;
+        fileLabel.textContent = fileName;
+
+        checkbox.addEventListener("change", function () {
+          fileRow.classList.toggle("completed", checkbox.checked);
+          updateProgress(fileList, progress, requiredFiles.length);
+        });
+
+        fileRow.appendChild(checkbox);
+        fileRow.appendChild(fileLabel);
+        fileList.appendChild(fileRow);
       });
 
       assignmentCard.appendChild(title);
       assignmentCard.appendChild(information);
+      assignmentCard.appendChild(progress);
       assignmentCard.appendChild(fileList);
       assignmentList.appendChild(assignmentCard);
 
       emptyMessage.hidden = true;
       form.reset();
     });
+
+    function updateProgress(fileList, progress, totalFiles) {
+      const readyFiles = fileList.querySelectorAll(
+        'input[type="checkbox"]:checked'
+      ).length;
+
+      progress.textContent = readyFiles + "/" + totalFiles + " hazır";
+      progress.classList.toggle("complete", readyFiles === totalFiles);
+    }
 
     function formatDate(dateValue) {
       return new Date(dateValue + "T00:00:00").toLocaleDateString("tr-TR");
